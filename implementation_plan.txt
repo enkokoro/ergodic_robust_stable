@@ -1,0 +1,27 @@
+fourier_function package
+    calculates fourier basis functions (torch and casadi versions), mu_k
+
+generic agent package
+mm_agent package 
+
+probability distribution function package
+
+generic ergodic coverage run package 
+
+perturbation package
+
+animation package
+
+robust tests
+- spatial 
+    - translation
+    - pointwise noise
+    - c_k
+- target distribution
+    - translation
+    - pointwise noise
+    - mu_k
+
+stability tests 
+- perturbation in beginning
+- perturbation at each timestep
