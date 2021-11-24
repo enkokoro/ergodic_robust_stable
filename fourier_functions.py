@@ -2,6 +2,7 @@ import numpy as np
 from scipy import integrate
 import torch 
 import casadi
+import matplotlib.pyplot as plt
 
 """ 
 Interface 
@@ -74,20 +75,35 @@ def Fourier_Functions(mu, U_shape, K, printProgress=False):
         all[k].update(torch_ff[k])
         all[k].update(mu_fc[k])
         all[k].update(casadi_ff[k])
+    if printProgress:
+        print("Done.")
     return all
 
-def Fourier_Functions_Visualize(U_shape, ff):
-    print(ff)
+def Fourier_Functions_Visualize2D(U_shape, _ff):
+    print(_ff)
     n = len(U_shape)
     #############
-    X,Y = np.meshgrid(*[np.linspace(0,1)]*2)
-_s = np.stack([X.ravel(), Y.ravel()]).T
+    X,Y = np.meshgrid(*[np.linspace(0,U_shape[0]), np.linspace(0, U_shape[1])])
+    _s = np.stack([X.ravel(), Y.ravel()]).T
+    print("f_k")
     f_k = np.array(list(map(_ff['f_k'], _s))).reshape(X.shape)
+    fig = plt.figure()
     plt.contourf(X, Y, f_k)
-
     fig = plt.figure()
     ax = plt.axes(projection='3d')
     ax.contour3D(X, Y, f_k, 100) #, 50, cmap='binary'
+
+
+    print("df_k")
+    df_k = np.array(list(map(_ff['df_k'], _s))).reshape(*X.shape, -1)
+    norm_version = np.linalg.norm(df_k, axis=2)
+    fig = plt.figure()
+    plt.contourf(X, Y, norm_version)
+    fig = plt.figure()
+    ax2 = plt.axes(projection='3d')
+    ax2.contour3D(X, Y, norm_version, 100)
+
+
 
 
 """ Constants """
@@ -119,7 +135,7 @@ def Constants(K, U_shape):
 def mu_k(mu, fourier_k, U_shape):
     U_bounds = [[0, U_bound] for U_bound in U_shape]
     # is mu defined everywhere in the bounds
-    integrand = lambda *x: mu(np.array(x)) * fourier_k(x).numpy()
+    integrand = lambda *x: mu(np.array(x)) * fourier_k(np.array(x))
     integral_result, _ = integrate.nquad(integrand, U_bounds)
     return integral_result
 
@@ -132,17 +148,17 @@ def Mu(mu, K, U_shape, Torch_Functions):
 
 """ Torch """
 def torch_fourier_k(new_k, U_shape):
-    return lambda x : (1/h_k(new_k, U_shape)) * torch.prod(torch.cos(torch.tensor(x)*torch.tensor(new_k)))
+    return lambda x : (1/h_k(new_k, U_shape)) * torch.prod(torch.cos(x*torch.tensor(new_k)))
 
 def torch_dfourier_k(new_k, U_shape):
     f_k = torch_fourier_k(new_k, U_shape)
-    return lambda x : torch.autograd.functional.jacobian(f_k, x)
+    return lambda x : torch.autograd.functional.jacobian(f_k, x, strict=True)
 
 def torch_fourier_functions_k(k, U_shape):
     n = len(U_shape)
     new_k = np.array(k)*np.pi/np.array(U_shape)
-    fourier_k = torch_fourier_k(new_k, U_shape)
-    dfourier_k = torch_dfourier_k(new_k, U_shape) 
+    fourier_k = lambda x: torch_fourier_k(new_k, U_shape)(torch.from_numpy(x)).numpy()
+    dfourier_k = lambda x: torch_dfourier_k(new_k, U_shape)(torch.from_numpy(x)).numpy()
     return {'f_k': fourier_k, 
             'df_k': dfourier_k}
 
