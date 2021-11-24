@@ -15,7 +15,7 @@ def mu_display2D(mu, U_shape):
     X,Y = np.meshgrid(*[np.linspace(0,U_shape[i]) for i in range(2)])
     _s = np.stack([X.ravel(), Y.ravel()]).T
 
-    plt.contourf(X,Y, np.array(list(map(mu, _s))).reshape(X[0].shape))
+    plt.contourf(X,Y, np.array(list(map(mu, _s))).reshape(X.shape))
 
 def bounds(value, U_shape):
     return lambda x: value if (0 <= x).all() and (x <= U_shape).all() else 0 
@@ -29,5 +29,5 @@ def mu_gaussians(g, U_shape):
     if len(g) == 0:
         return uniform(U_shape)
     else:
-        s = lambda x: [gaussian(x, gg[0], gg[1]) for gg in g].sum()
-        return lambda x: bounds(s(x), U_shape) 
+        s = lambda x: sum([gaussian(x, gg[0], gg[1]) for gg in g])
+        return lambda x: bounds(s(x), U_shape)(x)
