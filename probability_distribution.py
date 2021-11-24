@@ -8,7 +8,7 @@ def mu_normalize(mu, U_shape):
     return lambda x: mu(x)/mu_total
 
 def gaussian(x, center, width):
-    return np.exp(-width * np.sum((x - center)**2))
+    return np.exp(-1/width * np.sum((x - center)**2))
 
 def mu_display2D(mu, U_shape):
     assert len(U_shape) == 2
@@ -16,3 +16,18 @@ def mu_display2D(mu, U_shape):
     _s = np.stack([X.ravel(), Y.ravel()]).T
 
     plt.contourf(X,Y, np.array(list(map(mu, _s))).reshape(X[0].shape))
+
+def bounds(value, U_shape):
+    return lambda x: value if (0 <= x).all() and (x <= U_shape).all() else 0 
+
+def uniform(U_shape):
+    value = np.prod(U_shape)
+    assert value > 0
+    return bounds(value, U_shape)
+
+def mu_gaussians(g, U_shape):
+    if len(g) == 0:
+        return uniform(U_shape)
+    else:
+        s = lambda x: [gaussian(x, gg[0], gg[1]) for gg in g].sum()
+        return lambda x: bounds(s(x), U_shape) 
