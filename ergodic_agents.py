@@ -140,7 +140,7 @@ class AgentSystem:
         # fourier functions
         self.ff = fourier_functions
         self.K = K
-        self.all_k_bands = np.ndindex(*[K]*len(U_shape))
+        self.all_k_bands = list(np.ndindex(*[K]*len(U_shape)))
 
         # area details
         self.U_shape = U_shape
