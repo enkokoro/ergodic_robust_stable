@@ -12,7 +12,7 @@ def calculate_ergodicity(k_bands, c_k, fourier_functions):
         e += lambda_k*(c_k[k]-mu_k)**2
     return e
 
-def calculate_ergodicity(k_bands, c_k, fourier_functions):
+def calculate_ergodicity1(k_bands, c_k, fourier_functions):
     e = 0
     for k in k_bands:
         lambda_k = fourier_functions[k]['lambda_k']
@@ -111,7 +111,7 @@ class Agent:
         return np.stack(self.x_log)
 
     def get_ergodicity_log(self):
-        return np.array([self.e_log])
+        return np.array(self.e_log)
     
     def get_c_k_log(self):
         return self.c_k_log
@@ -198,7 +198,15 @@ class AgentSystem:
     
     def visualize2d(self):
         pass
-    
+
+    def c_k2distribution(self, c_k, k_bands):
+        def dist(x):
+            res = 0
+            for k in k_bands:
+                res += c_k[k]*self.ff[k]['f_k'](x)
+            return res
+        return dist
+            
     # TO DEFINE FOR VARIOUS TYPES OF SYSTEMS
     def update_positions(self):
         pass 

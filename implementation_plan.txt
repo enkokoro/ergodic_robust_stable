@@ -2,13 +2,14 @@ Basic Functionality
 [O] fourier_function package
     calculates fourier basis functions (torch and casadi versions), mu_k
 [O] probability distribution function package
-[ ] generic agent package
+[O] generic agent package
+    [ ] system visualization
 [ ] mm_agent package 
 
 [ ] generic ergodic coverage run package, casadi control
 
 Perturbation
-[ ] perturbation package
+[O] perturbation package
 
 Optional
 [ ] animation package

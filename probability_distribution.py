@@ -17,17 +17,17 @@ def mu_display2D(mu, U_shape):
 
     plt.contourf(X,Y, np.array(list(map(mu, _s))).reshape(X.shape))
 
-def bounds(value, U_shape):
-    return lambda x: value if (0 <= x).all() and (x <= U_shape).all() else 0 
+def bounds(x, value, U_shape):
+    return value if (0 <= x).all() and (x <= U_shape).all() else 0 
 
 def uniform(U_shape):
     value = np.prod(U_shape)
     assert value > 0
-    return bounds(value, U_shape)
+    return lambda x: bounds(x, value, U_shape)
 
 def mu_gaussians(g, U_shape):
     if len(g) == 0:
         return uniform(U_shape)
     else:
         s = lambda x: sum([gaussian(x, gg[0], gg[1]) for gg in g])
-        return lambda x: bounds(s(x), U_shape)(x)
+        return lambda x: bounds(x, s(x), U_shape)
