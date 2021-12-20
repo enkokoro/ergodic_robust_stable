@@ -15,7 +15,7 @@ class MMAgent1(Agent):
                 c_k_prev = self.c_k_log[-1]
             else:
                 c_k_prev = self.system_c_k
-                
+
         n = len(self.U_shape)
         B_j = np.zeros(n)
 
@@ -49,7 +49,7 @@ class MMAgent1(Agent):
                 # aim towards center if not already at center
                 B_j = -1 * (U_center - x_prev)
         
-        u_j = -1 * self.u_max * B_j / np.linalg.norm(B_j)
+        u_j = -1 * self.max_control * B_j / np.linalg.norm(B_j)
         return u_j
 
     def move(self, u, t, delta_t, x_prev=None):
