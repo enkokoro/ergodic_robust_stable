@@ -179,6 +179,12 @@ class AgentSystem:
         return c_k
 
     def evolve(self, t, delta_t, u_agents=None, c_k_agents_prev=None, x_agents_prev=None):
+        print(self)
+        print(t)
+        print(delta_t)
+        print(u_agents)
+        print(c_k_agents_prev)
+        print(x_agents_prev)
         self.communicate()
         prediction_mode = False 
         if c_k_agents_prev is not None and x_agents_prev is not None:
@@ -186,7 +192,7 @@ class AgentSystem:
         u_agents_applied = []
         c_k_agents_curr = []
         x_agents_curr = []
-        for agent in range(self.agents):
+        for agent in self.agents:
             id = agent.agent_id
             u = get_idx(u_agents, id)
             c_k_prev = get_idx(c_k_agents_prev, id)
