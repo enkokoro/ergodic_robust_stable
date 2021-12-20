@@ -93,7 +93,7 @@ class Agent:
             if prediction_mode:
                 fourier_fn = self.ff[k]['casadi_f_k']
             else:
-                 self.ff[k]['f_k']
+                fourier_fn = self.ff[k]['f_k']
             average_f_k = (1/2)*(fourier_fn(x_prev) + fourier_fn(x_curr))
             c_k_curr[k] = (c_k_prev[k]*t + average_f_k*delta_t)/(t+delta_t)
 
