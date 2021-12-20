@@ -3,13 +3,22 @@ Basic Functionality
     calculates fourier basis functions (torch and casadi versions), mu_k
 [O] probability distribution function package
 [O] generic agent package
-    [ ] system visualization
-[ ] mm_agent package 
+    [O] system visualization
+
+Agent Controls
+[O] mm_agent order 1 package 
+[ ] casadi control
+
+System Communication Methods
+[O] global communication system 
+[ ] local communication system
+[ ] optimal communication system 
 
 [ ] generic ergodic coverage run package, casadi control
 
 Perturbation
 [O] perturbation package
+[ ] run perturbation tests (agent belief <- compute control vs actual <- compute ergodicity)
 
 Optional
 [ ] animation package
