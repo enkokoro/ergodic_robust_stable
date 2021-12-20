@@ -6,11 +6,11 @@ Basic Functionality
     [O] system visualization
 
 Agent Controls
-[O] mm_agent order 1 package 
+[testing] mm_agent order 1 package 
 [ ] casadi control
 
 System Communication Methods
-[O] global communication system 
+[not yet tested] global communication system 
 [ ] local communication system
 [ ] optimal communication system 
 
