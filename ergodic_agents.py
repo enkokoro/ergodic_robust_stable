@@ -77,20 +77,24 @@ class Agent:
         """ 
         if using for prediction, supply x_prev and x_curr as casadi.MX variables, will not change actual c_k
         """
+        prediction_mode = False
         if c_k_prev is not None and x_prev is not None and x_curr is not None:
             # they must be casadi.MX variables
-            fourier_fn = self.ff['casadi_f_k']
+            prediction_mode = True
             c_k_curr = {}
         else:
             x_prev = self.x_log[-2]
             x_curr = self.x_log[-1]
-            fourier_fn = self.ff['f_k']
             c_k_curr = self.c_k # actually updates self.c_k
             c_k_prev = self.c_k
 
         for k in self.k_bands:
             # trapezoidal rule
-            average_f_k = (1/2)*(fourier_fn[k](x_prev) + fourier_fn[k](x_curr))
+            if prediction_mode:
+                fourier_fn = self.ff[k]['casadi_f_k']
+            else:
+                 self.ff[k]['f_k']
+            average_f_k = (1/2)*(fourier_fn(x_prev) + fourier_fn(x_curr))
             c_k_curr[k] = (c_k_prev[k]*t + average_f_k*delta_t)/(t+delta_t)
 
         return c_k_curr
