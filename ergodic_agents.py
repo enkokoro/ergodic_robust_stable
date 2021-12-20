@@ -1,8 +1,13 @@
 import casadi
 import torch 
 import numpy as np
+import matplotlib.animation as animation
+import matplotlib.pyplot as plt
+import time
 
 from fourier_functions import Fourier_Functions, Mu
+
+
 
 def calculate_ergodicity(k_bands, c_k, fourier_functions):
     e = 0
@@ -58,6 +63,10 @@ class Agent:
         # time averaged spatial distribution fourier coefficients
         self.c_k = {k : self.ff[k]['f_k'](init_pos) for k in k_bands} 
         self.c_k_log = [self.c_k]
+
+        # system belief
+        self.system_c_k = None
+        self.system_c_k_log = []
 
         # agent ergodicity
         e_init = calculate_ergodicity(self.k_bands, self.c_k, self.ff)
@@ -115,7 +124,7 @@ class Agent:
     
     def get_c_k_log(self):
         return self.c_k_log
-    
+
     def get_c_k(self, k):
         return self.c_k.get(k, 0)
 
@@ -195,9 +204,6 @@ class AgentSystem:
             self.e_log.append(ergodicity_agents)
 
         return u_agents_applied, c_k_agents_curr, x_agents_curr, ergodicity_agents
-    
-    def visualize2d(self):
-        pass
 
     def c_k2distribution(self, c_k, k_bands):
         def dist(x):
@@ -219,3 +225,98 @@ class AgentSystem:
     def communicate(self):
         pass
     
+    def visualize2d(self, filename="test", additional_title="TEST", plot_c_k=False): 
+        date_and_time = time.strftime("_%Y_%m_%d-%H:%M")
+        filename = filename + date_and_time
+
+        # colors = ['r', 'm', 'c', 'y', 'g', 'b', 'k', 'w']
+        colors = ['maroon', 'cyan', 'red', 'black', 'slateblue', 'orange', 'indigo', 'magenta', 'pink', 'white']
+        assert self.num_agents <= len(colors), "does not support this many agents"
+
+        if plot_c_k:
+            fig, ((ax1, ax3, ax2)) = plt.subplots(1, 3, figsize=(6.4*2, 4.8))
+        else:
+            fig, ((ax1, ax2)) = plt.subplots(1, 2, figsize=(6.4*2, 4.8))
+
+        fig.suptitle("Ergodic Coverage " + additional_title)
+
+        ax1.set_title('Search Space')
+        ax1.set_aspect('equal')
+        ax1.set_xlim(0, self.U_shape[0])
+        ax1.set_ylim(0, self.U_shape[1])
+
+        X,Y = np.meshgrid(np.linspace(0, self.U_shape[0]), np.linspace(0, self.U_shape[1]))
+        _s = np.stack([X.ravel(), Y.ravel()]).T
+        ax1.contourf(X, Y, np.array(list(map(self.mu, _s))).reshape(X.shape))
+
+        ax2.set_title('Ergodicity')
+        ax2.set(xlabel='Time')
+
+        if plot_c_k:
+            ax3.set_title('Coverage')
+            ax3.set_aspect('equal')
+            ax3.set_xlim(0, self.U_shape[0])
+            ax3.set_xlim(0, self.U_shape[1])
+
+        fig.tight_layout()
+
+        pos_data = [([], []) for i in range(self.num_agents)]
+        time_data = []
+        ergodicity_data = []
+        local_ergodicity_data = [[] for i in range(self.num_agents)]
+        pos_lns = []
+        local_erg_lns = []
+
+        for i in range(self.num_agents):
+            pos_ln, = ax1.plot(pos_data[i][0], pos_data[i][1], c=colors[i], label=i)
+            pos_lns.append(pos_ln)
+
+            local_erg, = ax2.plot(time_data, local_ergodicity_data[i], c=colors[i], label=i)
+            local_erg_lns.append(local_erg)
+        ergodicity_ln, = ax2.plot(time_data, ergodicity_data, c='b')
+
+        def animate2d_init():
+            phi2_max = max(self.e_log)
+            time_max = len(self.e_log)
+            ax2.set_xlim(0, time_max)
+            ax2.set_ylim(0, phi2_max)
+            init_spatial_dist = self.c_k2distribution(self.c_k_log[0], self.all_k_bands)
+            if plot_c_k:
+                cont = ax3.contourf(X, Y, np.array(list(map(init_spatial_dist, _s))).reshape(X.shape))
+                return (*cont.collections, ergodicity_ln, *local_erg_lns, *pos_lns)
+            else:
+                return (ergodicity_ln, *local_erg_lns, *pos_lns)
+
+
+        def animate2d_from_logs_update(frame):
+            time_data.append(frame)
+            for i in range(self.num_agents):
+                pos_data[i][0].append(self.agents[i].x_log[frame][0])
+                pos_data[i][1].append(self.agents[i].x_log[frame][1])
+                pos_lns[i].set_data(pos_data[i][0], pos_data[i][1])
+
+                local_ergodicity_data[i].append(self.agents[i].e_log[frame])
+                local_erg_lns[i].set_data(time_data, local_ergodicity_data[i])
+                
+            
+            ergodicity_data.append(self.e_log[frame])
+            ergodicity_ln.set_data(time_data, ergodicity_data)
+
+            spatial_dist = self.c_k2distribution(self.c_k_log[frame], self.all_k_bands)
+            if plot_c_k:
+                cont = ax3.contourf(X, Y, np.array(list(map(spatial_dist, _s))).reshape(X.shape))
+                return (*cont.collections, ergodicity_ln, *local_erg_lns, *pos_lns)
+            else:
+                return (ergodicity_ln, *local_erg_lns, *pos_lns)
+
+        update = animate2d_from_logs_update
+        frames = len(self.e_log)
+
+
+        FFwriter = animation.writers['ffmpeg']
+        writer = FFwriter(fps=30, metadata=dict(artist='Me'), bitrate=1800)
+        anime = animation.FuncAnimation(fig, animate2d_from_logs_update, init_func=animate2d_init, 
+                                    frames=frames, interval=20, blit=True)  
+        plt.show()
+        if filename is not None:
+            anime.save(filename+".mp4", writer=writer) 
