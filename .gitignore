@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 
 # videos
-.mp4
+*.mp4
