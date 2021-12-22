@@ -78,14 +78,13 @@ class Agent:
         if using for prediction, supply x_prev and x_curr as casadi.MX variables, will not change actual c_k
         """
         prediction_mode = False
+        c_k_curr = {}
         if c_k_prev is not None and x_prev is not None and x_curr is not None:
             # they must be casadi.MX variables
             prediction_mode = True
-            c_k_curr = {}
         else:
             x_prev = self.x_log[-2]
             x_curr = self.x_log[-1]
-            c_k_curr = self.c_k # actually updates self.c_k
             c_k_prev = self.c_k
 
         for k in self.k_bands:
@@ -117,6 +116,8 @@ class Agent:
         e = calculate_ergodicity(self.k_bands, c_k_curr, self.ff)
         if not prediction_mode:
             self.e_log.append(e)
+            self.c_k = c_k_curr
+            self.c_k_log.append(c_k_curr)
         return u, c_k_curr, x_curr, e
     
     # OBTAIN AGENT POSITION AND ERGODICITY INFORMATION
@@ -201,9 +202,10 @@ class AgentSystem:
             c_k_agents_curr.append(c_k_curr)
             x_agents_curr.append(x_curr)
 
-        self.c_k = self.calculate_c_k()
-        ergodicity_agents = calculate_ergodicity(self.all_k_bands, self.c_k, self.ff)
+        c_k = self.calculate_c_k()
+        ergodicity_agents = calculate_ergodicity(self.all_k_bands, c_k, self.ff)
         if not prediction_mode:
+            self.c_k = c_k
             self.c_k_log.append(self.c_k)
             self.e_log.append(ergodicity_agents)
 
