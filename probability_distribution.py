@@ -11,6 +11,7 @@ def gaussian(x, center, width):
     return np.exp(-1/width * np.sum((x - center)**2))
 
 def mu_display2D(mu, U_shape):
+    plt.figure()
     assert len(U_shape) == 2
     X,Y = np.meshgrid(*[np.linspace(0,U_shape[i]) for i in range(2)])
     _s = np.stack([X.ravel(), Y.ravel()]).T
