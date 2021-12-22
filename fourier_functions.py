@@ -45,7 +45,7 @@ Interface
 """
 
 """ Grab All """
-def Fourier_Functions(mu, U_shape, K, printProgress=False):
+def Fourier_Functions(mu, U_shape, K, compute_mu=True, printProgress=False):
     if printProgress:
         print(f"Fourier Functions (mu, U_shape=",U_shape,", K=",K,")...")
 
@@ -57,9 +57,10 @@ def Fourier_Functions(mu, U_shape, K, printProgress=False):
         print("Computing torch fourier functions (f_k, df_k)...")
     torch_ff = Torch_Fourier_Functions(K, U_shape)
 
-    if printProgress:
-        print("Computing mu fourier coefficients (mu_k)... this will take a while because integration...")
-    mu_fc = Mu(mu, K, U_shape, torch_ff)
+    if compute_mu:
+        if printProgress:
+            print("Computing mu fourier coefficients (mu_k)... this will take a while because integration...")
+        mu_fc = Mu(mu, K, U_shape, torch_ff)
 
     if printProgress:
         print("Computing casadi fourier function (casadi_f_k)...")
@@ -73,7 +74,8 @@ def Fourier_Functions(mu, U_shape, K, printProgress=False):
         all[k] = {}
         all[k].update(constants[k])
         all[k].update(torch_ff[k])
-        all[k].update(mu_fc[k])
+        if compute_mu:
+            all[k].update(mu_fc[k])
         all[k].update(casadi_ff[k])
     if printProgress:
         print("Done.")
