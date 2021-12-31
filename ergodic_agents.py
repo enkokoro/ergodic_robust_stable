@@ -108,6 +108,7 @@ class Agent:
         if u is None: # may or may not already supply control to be used
             u = self.control(t, delta_t, c_k_prev=c_k_prev, x_prev=x_prev)
         x_curr = self.move(u, t, delta_t, x_prev=x_prev)
+ 
         if not prediction_mode:
             self.u_log.append(u)
             self.x_log.append(x_curr)

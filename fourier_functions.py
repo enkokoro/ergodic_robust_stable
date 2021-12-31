@@ -3,6 +3,7 @@ from scipy import integrate
 import torch 
 import casadi
 import matplotlib.pyplot as plt
+from multiprocessing import Pool
 
 """ 
 Interface 
@@ -134,6 +135,20 @@ def Constants(K, U_shape):
     return constants
 
 """ Mu """
+_mu = None 
+_U_shape = None
+_Fourier_Functions = None
+def _mu_k_init(mu, U_shape, FF):
+    global _mu 
+    global _U_shape
+    global _Fourier_Functions
+    _mu = mu 
+    _U_shape = U_shape
+    _Fourier_Functions = FF
+
+def _mu_k(k):
+    return mu_k(_mu, _Fourier_Functions[k]['f_k'], _U_shape)
+
 def mu_k(mu, fourier_k, U_shape):
     U_bounds = [[0, U_bound] for U_bound in U_shape]
     # is mu defined everywhere in the bounds
@@ -144,8 +159,15 @@ def mu_k(mu, fourier_k, U_shape):
 def Mu(mu, K, U_shape, Torch_Functions):
     n = len(U_shape)
     _mu = {}
-    for k in np.ndindex(*[K]*n):
-        _mu[k] = {'mu_k': mu_k(mu, Torch_Functions[k]['f_k'], U_shape)}
+    # 
+    all_k = list(np.ndindex(*[K]*n))
+    len_k = len(all_k)
+    p = Pool(None, initializer=_mu_k_init, initargs=(mu, U_shape, Torch_Functions))
+    results_pooled = p.map(_mu_k, all_k)
+    for i in range(len_k):
+        _mu[all_k[i]] = {'mu_k': results_pooled[i]}
+    # for k in np.ndindex(*[K]*n):
+    #     _mu[k] = {'mu_k': mu_k(mu, Torch_Functions[k]['f_k'], U_shape)}
     return _mu
 
 """ Torch """
