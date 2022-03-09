@@ -7,23 +7,27 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
-def GPUpdate(distrib, X, Y, xyGP, zGP, t, ell, dt):
+# is there a reference where you took this from that I could read more about? - BioRobotics Github Hetergeneous Multi-agent
+# https://github.com/biorobotics/ergodic-heterogeneous
 
+# distrib: a priori information
+
+def GPUpdate(distrib, X, Y, xyGP, zGP, t, ell, dt): # Gaussian Process
 	newUtilities = np.zeros((zGP.size,X.shape[0],X.shape[1]))
 
 	j = 0
 	nums = range(1,zGP.size)
-	I0 = [i for i, e in enumerate(zGP) if e == 0]
+	I0 = [i for i, e in enumerate(zGP) if e == 0] # index of observations and if they were pos or not
 	I1 = [i for i, e in enumerate(zGP) if e != 0]
 
-	neutralCost = 0.3
+	neutralCost = 0.3 # make sure to still explore regions
 	Norm0 = 1 / (ell[1] * ell[2] * 2*pi)
-	Norm1 = 1 / (ell[1] * ell[2] * 2*pi)
+	Norm1 = 1 / (ell[1] * ell[2] * 2*pi) 
 
 	#update 0 measurements -> 0 utility
-	for i in I0:
-		t0 = xyGP[i,0]
-		mu = [xyGP[i,1], xyGP[i,2]]
+	for i in I0: # barely listen to measurement
+		t0 = xyGP[i,0] # time of observation
+		mu = [xyGP[i,1], xyGP[i,2]] # doesn't use previous timestep information?
 		Sigma = [[(ell[1])**2,0], [0, (ell[2])**2]]
 
 		temp1=np.matrix(np.reshape(X,X.size))
@@ -33,19 +37,21 @@ def GPUpdate(distrib, X, Y, xyGP, zGP, t, ell, dt):
 		x[:,1]=temp2.T
 		
 		mvn1 = multivariate_normal(mu,Sigma)
-		F = mvn1.pdf(x)
+		F = mvn1.pdf(x) # discretizing the pdf taken from the sensor measurements
 		F=np.matrix(np.reshape(F,X.shape))
-		tt = (1 - F/(Norm0 + .00000000000000000000003*(t - t0)))
+        # 1 - F/Norm0 because near the sensor measurements we did not see the object of interest
+		tt = (1 - F/(Norm0 + .00000000000000000000003*(t - t0))) # what is this 0.00..03*(t-t0) constant
 		newUtilities[j,:,:] = np.multiply(neutralCost, np.clip(tt, None, 1))
 
 		j = j + 1
 	
 	#update 1 measurements -> 0 utility if new, 1 if old
-	for i in I1:
+	for i in I1: # saw target, care more about these measurements
 		t0 = xyGP[i,0]
 		
 		mu = [xyGP[i,1], xyGP[i,2]]
 		
+        # t - t0 term? is the object moving and that is why there is such a term
 		Sigma = np.multiply(((ell[1]*(max(dt,(t-t0)))/ell[0])**2), np.identity(2))
 		
 		temp1=np.matrix(np.reshape(X,X.size))
@@ -72,7 +78,7 @@ def GPUpdate(distrib, X, Y, xyGP, zGP, t, ell, dt):
 	normalizedNewUtility = newUtility - neutralCost
 	normalizedNewUtility /= newUtility.sum()
 
-	finalUtility = np.clip((distrib + 2*normalizedNewUtility),0,1)
+	finalUtility = np.clip((distrib + 2*normalizedNewUtility),0,1) # combining the a priori information with measurements
 	finalUtility /= finalUtility.sum()
 
 	return finalUtility
@@ -81,8 +87,10 @@ def GPUpdate(distrib, X, Y, xyGP, zGP, t, ell, dt):
 	# Gridsize
 	nx = 50
 	ny = 50
+    # observations
 	xyGP = np.matrix([[6, 5, 5], [6, 20, 10], [6, 30, 30]]) # xyGP[i,0] = time of observation, xyGP[i,1] = mean_x, xyGP[i,2] = mean_y
-	zGP = np.array([1, 0, 1]) # Records a positive (1) or negative (0) observation
+	# state or sensor or agent array
+    zGP = np.array([1, 0, 1]) # Records a positive (1) or negative (0) observation
 	t = 11 # Current time
 	ell = np.array([5, 6, 5]) # Standard deviation
 	dt = 1
