@@ -51,6 +51,7 @@ class Agent:
         # agent specificifications
         self.max_control = max_control 
         self.k_bands = k_bands
+        self.u_plan = None
 
         # search area specifications
         self.U_shape = U_shape
@@ -105,10 +106,15 @@ class Agent:
         prediction_mode = False
         if c_k_prev is not None and x_prev is not None:
             prediction_mode = True
-        if u is None: # may or may not already supply control to be used
+        if u is None and self.u_plan is None: # may or may not already supply control to be used
             u = self.control(t, delta_t, c_k_prev=c_k_prev, x_prev=x_prev)
+            # self.u_plan = u # need to check this works for mm_agent
+        if self.u_plan is not None:
+            u = self.u_plan[:,0]
+            self.u_plan = self.u_plan[:,1:]  
+            if self.u_plan.shape[1] == 0:
+                self.u_plan = None
         x_curr = self.move(u, t, delta_t, x_prev=x_prev)
- 
         if not prediction_mode:
             self.u_log.append(u)
             self.x_log.append(x_curr)
@@ -318,6 +324,8 @@ class AgentSystem:
 
         update = animate2d_from_logs_update
         frames = len(self.e_log)
+        print(pos_data)
+        print(ergodicity_data)
 
 
         FFwriter = animation.writers['ffmpeg']
