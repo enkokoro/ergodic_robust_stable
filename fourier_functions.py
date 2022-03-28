@@ -176,13 +176,13 @@ def torch_fourier_k(new_k, U_shape):
 
 def torch_dfourier_k(new_k, U_shape):
     f_k = torch_fourier_k(new_k, U_shape)
-    return lambda x : torch.autograd.functional.jacobian(f_k, x, strict=True)
+    return lambda x : torch.autograd.functional.jacobian(f_k, x)#, strict=True)
 
 def torch_fourier_functions_k(k, U_shape):
     n = len(U_shape)
     new_k = np.array(k)*np.pi/np.array(U_shape)
-    fourier_k = lambda x: torch_fourier_k(new_k, U_shape)(torch.from_numpy(x)).numpy()
-    dfourier_k = lambda x: torch_dfourier_k(new_k, U_shape)(torch.from_numpy(x)).numpy()
+    fourier_k = lambda x: torch_fourier_k(new_k, U_shape)(torch.tensor(x)).detach().numpy()
+    dfourier_k = lambda x: torch_dfourier_k(new_k, U_shape)(torch.tensor(x)).detach().numpy()
     return {'f_k': fourier_k, 
             'df_k': dfourier_k}
 
