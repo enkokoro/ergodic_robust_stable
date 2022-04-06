@@ -157,7 +157,8 @@ class Agent:
 
 
 class AgentSystem:
-    def __init__(self, agents, init_mu, U_shape, fourier_functions, K): 
+    def __init__(self, agents, init_mu, U_shape, fourier_functions, K):
+        self.system_type = "No Communication" 
         # fourier functions
         self.ff = fourier_functions
         self.K = K
@@ -191,7 +192,7 @@ class AgentSystem:
         return c_k
 
     def evolve(self, t, delta_t, u_agents=None, c_k_agents_prev=None, x_agents_prev=None):
-        self.communicate()
+        self.communicate(t, delta_t)
         prediction_mode = False 
         if c_k_agents_prev is not None and x_agents_prev is not None:
             prediction_mode = True
@@ -239,7 +240,7 @@ class AgentSystem:
         for k in self.all_k_bands:
             self.ff[k].update(new_mu_k[k])
 
-    def communicate(self):
+    def communicate(self, t, delta_t):
         pass
     
     def visualize2d(self, filename="test", additional_title="TEST", plot_c_k=False): 
