@@ -25,8 +25,10 @@ class MMAgent1(Agent):
             mu_k = self.ff[k]['mu_k']
             c_k = c_k_prev[k]
             s_k = c_k - mu_k # S_k = N*t*s_k = N*t*c_k - N*t*mu_k
-            print("additional: ", (lambda_k * s_k * grad_f_k(x_prev)).shape)
             B_j += lambda_k * s_k * grad_f_k(x_prev)
+            
+            assert x_prev.shape == grad_f_k(x_prev).shape
+            assert x_prev.shape == B_j.shape
         # print("B_j: ", B_j)
 
         # B_j = 0 or agent is too near boundary (because we are using approximations, 

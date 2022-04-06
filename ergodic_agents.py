@@ -204,7 +204,11 @@ class AgentSystem:
             c_k_prev = get_idx(c_k_agents_prev, id)
             x_prev = get_idx(x_agents_prev, id)
             u, c_k_curr, x_curr, e = agent.apply_dynamics(t, delta_t, u=u, c_k_prev=c_k_prev, x_prev=x_prev)
-            
+            # print("time: {}".format(t))
+            # print(u)
+            # print(c_k_curr)
+            # print(x_curr)
+            # print(e)
             u_agents_applied.append(u)
             c_k_agents_curr.append(c_k_curr)
             x_agents_curr.append(x_curr)
