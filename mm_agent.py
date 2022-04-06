@@ -53,7 +53,7 @@ class MMAgent1(Agent):
                 B_j = -1 * (U_center - x_prev)
         
         u_j = -1 * self.max_control * B_j / np.linalg.norm(B_j)
-        return u_j
+        return [u_j]
 
     def move(self, u, t, delta_t, x_prev=None):
         """ returns new movement given u control"""

@@ -108,7 +108,7 @@ class Agent:
             prediction_mode = True
         if u is None and self.u_plan is None: # may or may not already supply control to be used
             u = self.control(t, delta_t, c_k_prev=c_k_prev, x_prev=x_prev)
-            # self.u_plan = u # need to check this works for mm_agent
+            self.u_plan = u # need to check this works for mm_agent
         if self.u_plan is not None:
             u = self.u_plan[:,0]
             self.u_plan = self.u_plan[:,1:]  
@@ -148,7 +148,7 @@ class Agent:
     #     return x 
 
     def control(self, t, delta_t, c_k_prev=None, x_prev=None):
-        """ returns new control """
+        """ returns array as planned new control """
         pass 
 
     def move(self, u, t, delta_t, x_prev=None):
