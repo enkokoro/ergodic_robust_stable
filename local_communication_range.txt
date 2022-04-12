@@ -1,0 +1,30 @@
+Displaying:  uniform  communication range:  0.1
+Communication probability:  0.029696159999999677
+Displaying:  uniform  communication range:  0.25
+Communication probability:  0.16330256000000207
+Displaying:  uniform  communication range:  0.5
+Communication probability:  0.50780432
+Displaying:  uniform  communication range:  0.75
+Communication probability:  0.8497275200000006
+Displaying:  uniform  communication range:  1
+Communication probability:  1.0486606400000162
+Displaying:  one_gaussian  communication range:  0.1
+Communication probability:  0.4012872410949724
+Displaying:  one_gaussian  communication range:  0.25
+Communication probability:  0.9617651591116563
+Displaying:  one_gaussian  communication range:  0.5
+Communication probability:  1.0035980904953858
+Displaying:  one_gaussian  communication range:  0.75
+Communication probability:  1.003599207132009
+Displaying:  one_gaussian  communication range:  1
+Communication probability:  1.0035992071320108
+Displaying:  two_big_one_small  communication range:  0.1
+Communication probability:  0.0884574424741592
+Displaying:  two_big_one_small  communication range:  0.25
+Communication probability:  0.3020716420612658
+Displaying:  two_big_one_small  communication range:  0.5
+Communication probability:  0.5130054532733204
+Displaying:  two_big_one_small  communication range:  0.75
+Communication probability:  0.8734725240776411
+Displaying:  two_big_one_small  communication range:  1
+Communication probability:  1.0030025828072426

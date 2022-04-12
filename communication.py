@@ -71,6 +71,9 @@ class LocalDynamicConsensusSystem(LocalCommunicationSystem):
             for k in self.all_k_bands:
                 for neighbor in self.agents:
                     if np.linalg.norm(agent.x_log[-1] - neighbor.x_log[-1]) < self.comm_range:
-                        du_i_dt = (self.ff[k](agent.x_log[-1])*t - self.agent_c_k[-1]*t)/t**2
+                        if t == 0:
+                            du_i_dt = agent.c_k_log[-1][k]
+                        else:
+                            du_i_dt = (self.ff[k]['f_k'](agent.x_log[-1])*t - agent.c_k_log[-1][k]*t)/t**2
                         agent.system_c_k[k] -= self.comm_timestep*(agent.system_c_k_log[-1][k] - neighbor.c_k[k]) + du_i_dt
             agent.system_c_k_log.append(agent.system_c_k)
