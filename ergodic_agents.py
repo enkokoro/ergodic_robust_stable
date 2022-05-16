@@ -340,3 +340,30 @@ class AgentSystem:
         plt.show()
         if filename is not None:
             anime.save(filename+".mp4", writer=writer) 
+
+    def visualize_trajectory(self, filename, description):
+        visualize_trajectory(filename, description, self.U_shape, [agent.x_log for agent in self.agents], self.mu)
+
+    def visualize_ergodicity(self, filename):
+        visualize_ergodicity(filename, self.e_log)
+        
+def visualize_trajectory(filename, description, U_shape, trajectories, mu):
+    plt.figure()
+    assert len(U_shape) == 2
+    X,Y = np.meshgrid(*[np.linspace(0, U_shape[i]) for i in range(2)])
+    _s = np.stack([X.ravel(), Y.ravel()]).T
+    plt.title(description)
+    plt.contourf(X,Y, np.array(list(map(mu, _s))).reshape(X.shape))
+    for trajectory in trajectories:
+        trajectory_np = np.array(trajectory)
+        plt.plot(trajectory_np[:,0], trajectory_np[:,1])
+    plt.savefig(f"{filename}_trajectory.svg")
+    plt.close("all")
+
+def visualize_ergodicity(filename, ergodicity_log):
+    plt.figure()
+    plt.plot(ergodicity_log)
+    plt.title("System Ergodicity")
+    plt.savefig(f"{filename}_ergodicity.svg")
+    plt.close("all")
+
