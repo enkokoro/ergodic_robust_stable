@@ -205,11 +205,7 @@ class AgentSystem:
             c_k_prev = get_idx(c_k_agents_prev, id)
             x_prev = get_idx(x_agents_prev, id)
             u, c_k_curr, x_curr, e = agent.apply_dynamics(t, delta_t, u=u, c_k_prev=c_k_prev, x_prev=x_prev)
-            # print("time: {}".format(t))
-            # print(u)
-            # print(c_k_curr)
-            # print(x_curr)
-            # print(e)
+            
             u_agents_applied.append(u)
             c_k_agents_curr.append(c_k_curr)
             x_agents_curr.append(x_curr)
@@ -265,7 +261,7 @@ class AgentSystem:
 
         X,Y = np.meshgrid(np.linspace(0, self.U_shape[0]), np.linspace(0, self.U_shape[1]))
         _s = np.stack([X.ravel(), Y.ravel()]).T
-        ax1.contourf(X, Y, np.array(list(map(self.mu, _s))).reshape(X.shape))
+        ax1.contourf(X, Y, np.array(list(map(self.mu, _s))).reshape(X.shape), cmap='binary')
 
         ax2.set_title('Ergodicity')
         ax2.set(xlabel='Time')
@@ -300,7 +296,7 @@ class AgentSystem:
             ax2.set_ylim(0, phi2_max)
             init_spatial_dist = self.c_k2distribution(self.c_k_log[0], self.all_k_bands)
             if plot_c_k:
-                cont = ax3.contourf(X, Y, np.array(list(map(init_spatial_dist, _s))).reshape(X.shape))
+                cont = ax3.contourf(X, Y, np.array(list(map(init_spatial_dist, _s))).reshape(X.shape), cmap='binary')
                 return (*cont.collections, ergodicity_ln, *local_erg_lns, *pos_lns)
             else:
                 return (ergodicity_ln, *local_erg_lns, *pos_lns)
@@ -322,7 +318,7 @@ class AgentSystem:
 
             spatial_dist = self.c_k2distribution(self.c_k_log[frame], self.all_k_bands)
             if plot_c_k:
-                cont = ax3.contourf(X, Y, np.array(list(map(spatial_dist, _s))).reshape(X.shape))
+                cont = ax3.contourf(X, Y, np.array(list(map(spatial_dist, _s))).reshape(X.shape), cmap='binary')
                 return (*cont.collections, ergodicity_ln, *local_erg_lns, *pos_lns)
             else:
                 return (ergodicity_ln, *local_erg_lns, *pos_lns)
@@ -341,29 +337,36 @@ class AgentSystem:
         if filename is not None:
             anime.save(filename+".mp4", writer=writer) 
 
-    def visualize_trajectory(self, filename, description):
-        visualize_trajectory(filename, description, self.U_shape, [agent.x_log for agent in self.agents], self.mu)
+    def visualize_trajectory(self, filename, description, time_steps=None):
+        if time_steps is None:
+            visualize_trajectory(filename, description, self.U_shape, [agent.x_log for agent in self.agents], self.mu)
+        else:
+            visualize_trajectory(filename, description, self.U_shape, [agent.x_log[:time_steps] for agent in self.agents], self.mu)
 
     def visualize_ergodicity(self, filename):
         visualize_ergodicity(filename, self.e_log)
         
 def visualize_trajectory(filename, description, U_shape, trajectories, mu):
-    plt.figure()
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
     assert len(U_shape) == 2
     X,Y = np.meshgrid(*[np.linspace(0, U_shape[i]) for i in range(2)])
     _s = np.stack([X.ravel(), Y.ravel()]).T
     plt.title(description)
-    plt.contourf(X,Y, np.array(list(map(mu, _s))).reshape(X.shape))
+    ax.contourf(X,Y, np.array(list(map(mu, _s))).reshape(X.shape), cmap='binary')
+    ax.set_aspect('equal')
     for trajectory in trajectories:
         trajectory_np = np.array(trajectory)
-        plt.plot(trajectory_np[:,0], trajectory_np[:,1])
-    plt.savefig(f"{filename}_trajectory.svg")
+        # ax.scatter(trajectory_np[:,0], trajectory_np[:,1], alpha=0.6, )
+        ax.plot(trajectory_np[:,0], trajectory_np[:,1], 'o-')
+    plt.axis('off')
+    plt.savefig(f"{filename}_trajectory.pdf")
     plt.close("all")
 
 def visualize_ergodicity(filename, ergodicity_log):
     plt.figure()
     plt.plot(ergodicity_log)
     plt.title("System Ergodicity")
-    plt.savefig(f"{filename}_ergodicity.svg")
+    plt.savefig(f"{filename}_ergodicity.pdf")
     plt.close("all")
 

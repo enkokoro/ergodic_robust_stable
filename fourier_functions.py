@@ -91,10 +91,10 @@ def Fourier_Functions_Visualize2D(U_shape, _ff):
     print("f_k")
     f_k = np.array(list(map(_ff['f_k'], _s))).reshape(X.shape)
     fig = plt.figure()
-    plt.contourf(X, Y, f_k)
+    plt.contourf(X, Y, f_k, cmap='binary')
     fig = plt.figure()
     ax = plt.axes(projection='3d')
-    ax.contour3D(X, Y, f_k, 100) #, 50, cmap='binary'
+    ax.contour3D(X, Y, f_k, 100, cmap='binary') #, 50, cmap='binary'
 
 
     print("df_k")
