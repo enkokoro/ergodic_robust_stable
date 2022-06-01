@@ -10,11 +10,14 @@ def dirac_delta_2D(x, a=1):
     # return np.prod(dirac_delta_1D(x, a=a))
     return dirac_delta_1D(x[0], a=a)*dirac_delta_1D(x[1], a=a)
 
-def info_gathering_metric(mu, trajectory, T, a):
-    I = 1/T * sum([mu(casadi.reshape(x, (2,1))) for x in trajectory[:T]])
+def info_gathering_metric(mu, trajectory, T, a, total_horizon):
+    I = 1/total_horizon * sum([mu(casadi.reshape(x, (2,1))) for x in trajectory[:T]])
+    C = 1/total_horizon**2 * sum([dirac_delta_2D(x-y, a=a) for y in trajectory[:T] for x in trajectory[:T]])
+    return 2*I - C
+
+def info_gathering_metric_noncasadi(mu, trajectory, T, a):
+    I = 1/T * sum([mu(x) for x in trajectory[:T]])
     C = 1/T**2 * sum([dirac_delta_2D(x-y, a=a) for y in trajectory[:T] for x in trajectory[:T]])
-    print("I:", I.shape)
-    print("C:", C.shape)
     return 2*I - C
 
 class CasadiAgentInfoGathering(Agent):
@@ -38,15 +41,21 @@ class CasadiAgentInfoGathering(Agent):
             x_prev = x_curr 
             x.append(x_prev)
             _t += delta_t
-            
-        c_opti.minimize(-info_gathering_metric(self.mu, x, time_horizon, 1/self.dx))
+
+        total_horizon = time_horizon + len(self.x_log)
+        dd = 0
+        for y in self.x_log:
+            for _x in x:
+                dd += dirac_delta_2D(casadi.reshape(_x, (2,1))-y, a=1/self.dx)
+        C = 1/total_horizon**2 * dd *2
+        metric = C -info_gathering_metric(self.mu, x, time_horizon, 1/self.dx, total_horizon)
+        c_opti.minimize(metric)
 
         p_opts = {}
         s_opts = {'print_level': 0}
         c_opti.solver('ipopt', p_opts, s_opts)
         sol = c_opti.solve() 
         result = sol.value(u)
-        print(result)
         return result
 
     def move(self, u, t, delta_t, x_prev=None):
@@ -55,3 +64,4 @@ class CasadiAgentInfoGathering(Agent):
             x_prev = self.x_log[-1]
         new_x = x_prev + u*delta_t
         return new_x
+print("henlo")

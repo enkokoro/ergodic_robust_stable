@@ -358,7 +358,7 @@ def visualize_trajectory(filename, description, U_shape, trajectories, mu):
     for trajectory in trajectories:
         trajectory_np = np.array(trajectory)
         # ax.scatter(trajectory_np[:,0], trajectory_np[:,1], alpha=0.6, )
-        ax.plot(trajectory_np[:,0], trajectory_np[:,1], 'o-')
+        ax.plot(trajectory_np[:,0], trajectory_np[:,1], 'o-', markersize=5)
     plt.axis('off')
     plt.savefig(f"{filename}_trajectory.pdf")
     plt.close("all")

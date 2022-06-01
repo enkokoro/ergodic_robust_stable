@@ -14,6 +14,7 @@ def mu_total(mu, U_shape):
     mu_total, _ = integrate.nquad(lambda *x: mu(np.array(x)), int_bounds)
     return mu_total
 
+
 def gaussian(x, center, width):
     return np.exp(-1/width * np.sum((x - center)**2))
 
