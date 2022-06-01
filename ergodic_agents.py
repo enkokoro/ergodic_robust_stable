@@ -44,6 +44,7 @@ class Agent:
         """
         # fourier functions
         self.ff = fourier_functions
+        self.time_horizon = None
 
         # agent identifiers and system specifications
         self.agent_id = agent_id 

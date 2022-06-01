@@ -5,8 +5,10 @@ import casadi
 
 class CasadiAgent(Agent):
     """ first order agent """
-    def control(self, t, delta_t, c_k_prev=None, x_prev=None, time_horizon=100):
+    def control(self, t, delta_t, c_k_prev=None, x_prev=None, time_horizon=20):
         """ returns new control """
+        if self.time_horizon is not None:
+            time_horizon = self.time_horizon
         if c_k_prev is None:
             if self.system_c_k is None:
                 c_k_prev = self.c_k_log[-1]
@@ -15,11 +17,6 @@ class CasadiAgent(Agent):
         c_opti = casadi.Opti()
         self.c_opti = c_opti
         u = c_opti.variable(self.n, time_horizon)
-        print(u.shape)
-        print((np.ones((self.n, time_horizon))*self.max_control).shape)
-        ## likely this issue, can prob easily be fixed component wise thing
-        # c_opti.subject_to( u <= np.ones((self.n, time_horizon))*self.max_control )
-        # c_opti.subject_to( u >= -np.ones((self.n, time_horizon))*self.max_control )
 
         c_opti.set_initial(u, np.zeros((self.n, time_horizon)))
         # check to make sure new move is within bounds
@@ -30,9 +27,8 @@ class CasadiAgent(Agent):
             x_curr = self.move(u[:,i], _t, delta_t, x_prev=x_prev)
             c_opti.subject_to( x_curr >= 0 )
             c_opti.subject_to( x_curr <= np.array(self.U_shape) )
-            # for j in range(self.n):
-                # c_opti.subject_to( u[j,i] <= self.max_control )
-                # c_opti.subject_to( u[j,i] >= -self.max_control )
+
+            c_opti.subject_to(casadi.sum1(u[:,i]*u[:,i]) <= self.max_control**2) # new
         
             c_k_curr = self.recalculate_c_k(_t, delta_t, c_k_prev=c_k_prev, x_prev=x_prev, x_curr=x_curr)
             x_prev = x_curr 

@@ -202,7 +202,7 @@ def casadi_prod(x, n):
 
 def casadi_fourier_k(new_k, U_shape):
     hk = h_k(new_k, U_shape)
-    return lambda x : (1/hk) * casadi_prod(casadi.cos(x*casadi.MX(new_k)), len(U_shape))
+    return lambda x : (1/hk) * casadi_prod(casadi.cos(x*casadi.DM(new_k)), len(U_shape))
 
 def casadi_fourier_functions_k(k, U_shape):
     n = len(U_shape)
