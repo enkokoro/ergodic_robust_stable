@@ -1,7 +1,7 @@
 import numpy as np
 import sklearn.gaussian_process as gp
 import pyvista as pv
-
+import random
 """
 POINT CLOUD SPECIFIC INPUTS
 
@@ -9,14 +9,25 @@ MODEL NAME
 POINT CLOUD
 MEASUREMENT
 """
-model_name = "cube"
+# model_name = "cube"
+# def model_point_cloud(): # return numpy array dimenstion (n_points, 3)
+#     return cube_point_cloud(10) 
+# def train_data(): # return (numpy array dimenstion (n_points, 3), scalar array dimension (n_points,)
+#     return cube_train_data()
+# def measurement(data):
+#     return np.max(data, axis=1)
+
+# model_name = "sphere"
+model_name = "cone"
 def model_point_cloud(): # return numpy array dimenstion (n_points, 3)
-    return cube_point_cloud(10) 
+    # return pv.Sphere().points
+    return pv.Cone().points
 def train_data(): # return (numpy array dimenstion (n_points, 3), scalar array dimension (n_points,)
-    x_tr, y_tr, z_tr = [0, 0.25, 0.5, 0, 0, 0, 0, 1],[0, 0, 0, 0.25, 0.5, 0, 0, 1],[0, 0, 0, 0, 0, 0.25, 0.5, 1]# cube_point_cloud(5)
-    data_tr = np.column_stack([x_tr, y_tr, z_tr]) # (n_points, 3)
-    val_tr = measurement(data_tr)
-    return data_tr, val_tr
+    pc = model_point_cloud()
+    num_samples = min(10, len(pc)//2)
+    idx = random.sample(range(0, len(pc)), num_samples)
+    data_tr = pc[idx,:]
+    return data_tr, measurement(data_tr)
 def measurement(data):
     return np.max(data, axis=1)
 
@@ -32,7 +43,7 @@ kernel = gp.kernels.ConstantKernel(1.0, (1e-1, 1e3)) * gp.kernels.RBF(10.0, (1e-
 model = gp.GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10, alpha=0.1, normalize_y=True)
 
 ###############################################################################
-def cube_point_cloud(density):
+def cube_point_cloud(density=10):
     side_x, side_y = np.meshgrid(np.linspace(0, 1, density), np.linspace(0, 1, density))
     side_x = side_x.ravel()
     side_y = side_y.ravel()
@@ -41,6 +52,11 @@ def cube_point_cloud(density):
     y = np.hstack([side_y]+[1]*density*density+[side_y]+[0]*density*density+[side_y]*2)
     z = np.hstack([0]*density*density+[side_y]+[1]*density*density+[side_y]+[side_x]*2)
     return np.column_stack([x,y,z])
+def cube_train_data():
+    x_tr, y_tr, z_tr = [0, 0.25, 0.5, 0, 0, 0, 0, 1],[0, 0, 0, 0.25, 0.5, 0, 0, 1],[0, 0, 0, 0, 0, 0.25, 0.5, 1]# cube_point_cloud(5)
+    data_tr = np.column_stack([x_tr, y_tr, z_tr]) # (n_points, 3)
+    val_tr = measurement(data_tr)
+    return data_tr, val_tr
 
 ###############################################################################
 def pyvista_gif(plt, model_name, filename, shift):
