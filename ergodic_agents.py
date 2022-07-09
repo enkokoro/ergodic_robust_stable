@@ -244,7 +244,6 @@ class AgentSystem:
         date_and_time = time.strftime("_%Y_%m_%d-%H:%M")
         filename = filename + date_and_time
 
-        # colors = ['r', 'm', 'c', 'y', 'g', 'b', 'k', 'w']
         colors = ['maroon', 'cyan', 'red', 'black', 'slateblue', 'orange', 'indigo', 'magenta', 'pink', 'white']
         assert self.num_agents <= len(colors), "does not support this many agents"
 
@@ -337,6 +336,72 @@ class AgentSystem:
         plt.show()
         if filename is not None:
             anime.save(filename+".mp4", writer=writer) 
+    
+    def visualize2d_2(self, filename="test", plot_c_k=False): 
+        filename = filename
+
+        colors = ['blue', 'maroon', 'cyan', 'red', 'black', 'slateblue', 'orange', 'indigo', 'magenta', 'pink', 'white']
+        assert self.num_agents <= len(colors), "does not support this many agents"
+
+        fig, ax1 = plt.subplots(1, 1, figsize=(6.4, 6.4))
+
+        ax1.set_aspect('equal')
+        ax1.set_xlim(0, self.U_shape[0])
+        ax1.set_ylim(0, self.U_shape[1])
+
+        X,Y = np.meshgrid(np.linspace(0, self.U_shape[0]), np.linspace(0, self.U_shape[1]))
+        _s = np.stack([X.ravel(), Y.ravel()]).T
+        ax1.contourf(X, Y, np.array(list(map(self.mu, _s))).reshape(X.shape), cmap='binary')
+
+
+        fig.tight_layout()
+
+        pos_data = [([], []) for i in range(self.num_agents)]
+        time_data = []
+        pos_lns = []
+        plt.axis('off')
+
+        for i in range(self.num_agents):
+            pos_ln, = ax1.plot(pos_data[i][0], pos_data[i][1], c=colors[i], label=i)
+            pos_lns.append(pos_ln)
+
+
+        def animate2d_init():
+            init_spatial_dist = self.c_k2distribution(self.c_k_log[0], self.all_k_bands)
+            if plot_c_k:
+                cont = ax1.contourf(X, Y, np.array(list(map(init_spatial_dist, _s))).reshape(X.shape), cmap='binary')
+                return (*cont.collections, *pos_lns)
+            else:
+                return pos_lns
+
+
+        def animate2d_from_logs_update(frame):
+            time_data.append(frame)
+            for i in range(self.num_agents):
+                pos_data[i][0].append(self.agents[i].x_log[frame][0])
+                pos_data[i][1].append(self.agents[i].x_log[frame][1])
+                pos_lns[i].set_data(pos_data[i][0], pos_data[i][1])
+
+
+            spatial_dist = self.c_k2distribution(self.c_k_log[frame], self.all_k_bands)
+            if plot_c_k:
+                cont = ax1.contourf(X, Y, np.array(list(map(spatial_dist, _s))).reshape(X.shape), cmap='binary')
+                return (*cont.collections, *pos_lns)
+            else:
+                return pos_lns
+
+        update = animate2d_from_logs_update
+        frames = len(self.e_log)
+        print(pos_data)
+
+        FFwriter = animation.writers['ffmpeg']
+        writer = FFwriter(fps=30, metadata=dict(artist='Me'), bitrate=1800)
+        anime = animation.FuncAnimation(fig, animate2d_from_logs_update, init_func=animate2d_init, 
+                                    frames=frames, interval=20, blit=True)  
+        plt.show()
+        if filename is not None:
+            anime.save(filename+".mp4", writer=writer) 
+    
 
     def visualize_trajectory(self, filename, description, time_steps=None):
         if time_steps is None:
